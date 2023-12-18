@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Github Demo</string>
+    <string name="search">Search</string>
+    <string name="image_content_description">User Image</string>
+    <string name="hint_user_id">Enter a github user id</string>
+    <string name="repository_details">Repository Details</string>
+    <string name="repository_name">Name</string>
+    <string name="repository_description">Description</string>
+    <string name="repository_updated">Updated At</string>
+    <string name="repository_count">Stargazers Count</string>
+    <string name="repository_forks">Forks</string>
+    <string name="repository_total_forks">Total Number Of Forks</string>
+    <string name="error_message">Please enter valid user id</string>
+</resources>
