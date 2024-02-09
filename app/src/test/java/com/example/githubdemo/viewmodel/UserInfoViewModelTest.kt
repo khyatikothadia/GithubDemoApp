@@ -1,17 +1,19 @@
 package com.example.githubdemo.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.Observer
-import com.example.githubdemo.data.api.NetworkState
-import com.example.githubdemo.data.model.UserInfo
-import com.example.githubdemo.data.model.UserRepos
+import app.cash.turbine.test
+import com.example.githubdemo.data.api.ResourceState
+import com.example.githubdemo.data.entity.UserInfo
+import com.example.githubdemo.data.entity.UserRepos
 import com.example.githubdemo.data.repository.UserInfoRepository
+import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.impl.annotations.MockK
+import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -27,12 +29,10 @@ import org.junit.rules.TestRule
 class UserInfoViewModelTest {
 
     // Mocks
+    @MockK
     private lateinit var userInfoRepository: UserInfoRepository
-    private lateinit var viewModel: UserInfoViewModel
 
-    // Observer for LiveData
-    private lateinit var userInfoObserver: Observer<UserInfo?>
-    private lateinit var userReposObserver: Observer<List<UserRepos>?>
+    private lateinit var userInfoViewModel: UserInfoViewModel
 
     private val dispatcher: TestDispatcher = StandardTestDispatcher()
 
@@ -43,11 +43,8 @@ class UserInfoViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(dispatcher)
-        userInfoRepository = mockk()
-        viewModel = UserInfoViewModel(userInfoRepository)
-
-        userInfoObserver = mockk(relaxed = true)
-        userReposObserver = mockk(relaxed = true)
+        MockKAnnotations.init(this)
+        userInfoViewModel = UserInfoViewModel(userInfoRepository)
     }
 
     @After
@@ -56,66 +53,90 @@ class UserInfoViewModelTest {
     }
 
     @Test
-    fun getUserInfo_should_update_live_data_on_success() = runTest {
-        // Mocking the response from the repository
-        coEvery { userInfoRepository.getUserInfo("testUserId") } returns NetworkState.Success(
-            mockUserInfo()
+    fun `getUserInfo() should update flow state on success`() = runTest {
+        // Mocking the response from the repository (Assign)
+        coEvery { userInfoRepository.getUserInfo("testUserId") } returns flowOf(
+            ResourceState.Success(mockUserInfo())
         )
 
-        // Observe userInfoLiveData
-        viewModel.getUserInfoLiveData().observeForever(userInfoObserver)
-
-        // Call the ViewModel function
-        viewModel.getUserInfo("testUserId")
+        //Act
+        userInfoViewModel.getUserInfo("testUserId")
 
         // Verify repository method call
         coVerify { userInfoRepository.getUserInfo("testUserId") }
 
-        // Verify that LiveData was updated
-        verify { userInfoObserver.onChanged(any()) }
+        //Assert
+        userInfoViewModel.userInfo.test {
+            assertEquals(ResourceState.Success(mockUserInfo()), awaitItem())
+        }
     }
 
     @Test
-    fun getUserReposDetails_should_update_live_data_on_success() = runTest {
-        // Mocking the response from the repository
-        coEvery { userInfoRepository.getUserReposDetails("testUserId") } returns NetworkState.Success(
-            mockUserRepos()
+    fun `getUserInfo() should update flow state on error`() = runTest {
+        // Mocking the response from the repository (Assign)
+        coEvery { userInfoRepository.getUserInfo("testUserId") } returns flowOf(
+            ResourceState.Error("Test Error")
         )
 
-        // Observe UserReposLiveData
-        viewModel.getUserReposLiveData().observeForever(userReposObserver)
+        //Act
+        userInfoViewModel.getUserInfo("testUserId")
 
-        // Call the ViewModel function
-        viewModel.getUserReposDetails("testUserId")
+        // Verify repository method call
+        coVerify { userInfoRepository.getUserInfo("testUserId") }
+
+        //Assert
+        userInfoViewModel.userInfo.test {
+            assertEquals(ResourceState.Error<UserInfo>("Test Error"), awaitItem())
+        }
+    }
+
+    @Test
+    fun `getUserReposDetails() should update flow state on success`() = runTest {
+        // Mocking the response from the repository (Assign)
+        coEvery { userInfoRepository.getUserReposDetails("testUserId") } returns flowOf(
+            ResourceState.Success(mockUserRepos())
+        )
+
+        //Act
+        userInfoViewModel.getUserReposDetails("testUserId")
 
         // Verify repository method call
         coVerify { userInfoRepository.getUserReposDetails("testUserId") }
 
-        // Verify that LiveData was updated
-        verify { userReposObserver.onChanged(any()) }
+        // Assert
+        userInfoViewModel.userRepositories.test {
+            assertEquals(ResourceState.Success(mockUserRepos()), awaitItem())
+        }
+    }
 
+    @Test
+    fun `getUserReposDetails() should update flow state on error`() = runTest {
+        // Mocking the response from the repository (Assign)
+        coEvery { userInfoRepository.getUserReposDetails("testUserId") } returns flowOf(
+            ResourceState.Error("Test Error")
+        )
+
+        //Act
+        userInfoViewModel.getUserReposDetails("testUserId")
+
+        // Verify repository method call
+        coVerify { userInfoRepository.getUserReposDetails("testUserId") }
+
+        // Assert
+        userInfoViewModel.userRepositories.test {
+            assertEquals(ResourceState.Error<List<UserRepos>>("Test Error"), awaitItem())
+        }
+    }
+
+
+    private fun mockUserRepos(): List<UserRepos> {
+        return listOf(
+            UserRepos.fake(),
+            UserRepos.fake()
+        )
     }
 
     private fun mockUserInfo(): UserInfo {
         return UserInfo(name = "Test User", avatarUrl = "https://test.com/avatar.jpg")
-    }
-
-    private fun mockUserRepos(): List<UserRepos> {
-        return listOf(
-            UserRepos(
-                name = "Repo1",
-                description = "Description1",
-                updatedAt = "2022-01-01",
-                count = "100",
-                forks = 50
-            ),
-            UserRepos(
-                name = "Repo2",
-                description = "Description2",
-                updatedAt = "2022-02-01",
-                count = "150",
-                forks = 30
-            )
-        )
     }
 }

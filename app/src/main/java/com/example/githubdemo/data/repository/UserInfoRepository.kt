@@ -1,58 +1,79 @@
 package com.example.githubdemo.data.repository
 
-import com.example.githubdemo.data.api.GithubApiService
-import com.example.githubdemo.data.api.NetworkState
-import com.example.githubdemo.data.model.UserInfo
-import com.example.githubdemo.data.model.UserRepos
-import com.example.githubdemo.util.Constants.DELAY
+import com.example.githubdemo.data.api.ResourceState
+import com.example.githubdemo.data.datasource.UserInfoDataSource
+import com.example.githubdemo.data.entity.UserInfo
+import com.example.githubdemo.data.entity.UserRepos
+import com.example.githubdemo.util.AppConstants.DELAY
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 /**
  * Repository class responsible for fetching user information and repositories details
  * from the GitHub API.
  *
- * @property githubApiService The service responsible for interacting with the GitHub API.
+ * @property userInfoDataSource The datasource responsible for interacting with the GitHub API.
  */
-class UserInfoRepository @Inject constructor(private val githubApiService: GithubApiService) {
-
+class UserInfoRepository @Inject constructor(private val userInfoDataSource: UserInfoDataSource) {
 
     /**
      * Fetches user information for the specified [userId] from the GitHub API.
      *
      * @param userId The unique identifier of the GitHub user.
-     * @return [NetworkState.Success] with the retrieved [UserInfo] if successful,
-     *         [NetworkState.Error] with an error message otherwise.
+     * @return [ResourceState.Success] with the retrieved [UserInfo] if successful,
+     *         [ResourceState.Error] with an error message otherwise.
      */
     suspend fun getUserInfo(
         userId: String
-    ): NetworkState<UserInfo>? {
-        val response: UserInfo
-        return try {
-            response = githubApiService.getUserInfo(userId)
-            NetworkState.Success(response)
-        } catch (e: Exception) {
-            e.message?.let { NetworkState.Error(it) }
+    ): Flow<ResourceState<UserInfo?>> {
+        return flow {
+            emit(ResourceState.Loading())
+
+            val response = userInfoDataSource.getUserInfo(userId)
+            if (response.isSuccessful && response.body() != null) {
+                emit(ResourceState.Success(response.body()))
+            } else {
+                if (response.code() == 403) {
+                    emit(ResourceState.Error("Something went wrong, please try after sometime"))
+                }
+                emit(ResourceState.Error("Error fetching data"))
+            }
         }
+            .catch { exception ->
+                emit(ResourceState.Error(exception.localizedMessage ?: "Unknown error"))
+            }
     }
 
     /**
      * Fetches user's public repositories details for the specified [userId] from the GitHub API.
      *
      * @param userId The unique identifier of the GitHub user.
-     * @return [NetworkState.Success] with the retrieved [UserRepos] if successful,
-     *         [NetworkState.Error] with an error message otherwise.
+     * @return [ResourceState.Success] with the retrieved [UserRepos] if successful,
+     *         [ResourceState.Error] with an error message otherwise.
      */
     suspend fun getUserReposDetails(
         userId: String
-    ): NetworkState<List<UserRepos>>? {
-        val response: List<UserRepos>
-        return try {
+    ): Flow<ResourceState<List<UserRepos>?>> {
+
+        return flow {
+
+            emit(ResourceState.Loading())
             delay(DELAY)
-            response = githubApiService.getUserRepos(userId)
-            NetworkState.Success(response)
-        } catch (e: Exception) {
-            e.message?.let { NetworkState.Error(it) }
+            val response = userInfoDataSource.getUserRepos(userId)
+            if (response.isSuccessful && response.body() != null) {
+                emit(ResourceState.Success(response.body()))
+            } else {
+                if (response.code() == 403) {
+                    emit(ResourceState.Error("Something went wrong, please try after sometime"))
+                }
+                emit(ResourceState.Error("Error fetching data"))
+            }
         }
+            .catch { exception ->
+                emit(ResourceState.Error(exception.localizedMessage ?: "Unknown error"))
+            }
     }
 }

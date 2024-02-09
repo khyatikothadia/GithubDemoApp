@@ -3,11 +3,4 @@
 
     <style name="Theme.GithubDemo" parent="android:Theme.Material.Light.NoActionBar" />
 
-    <style name="Theme.GithubDemo.Button" parent="android:Widget.Button">
-        <item name="android:textSize">@dimen/font_16</item>
-        <item name="android:background">@drawable/custom_button</item>
-        <item name="android:textColor">@android:color/background_light</item>
-        <item name="android:textAllCaps">true</item>
-    </style>
-
 </resources>
