@@ -23,7 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -34,13 +33,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.githubdemo.R
-import com.example.githubdemo.data.api.ResourceState
+import com.example.githubdemo.data.remote.ResourceState
 import com.example.githubdemo.data.entity.UserRepos
 import com.example.githubdemo.ui.components.EmptyState
 import com.example.githubdemo.ui.theme.GitHubAppTheme
 import com.example.githubdemo.util.CoreUtility.getFormattedDate
-import com.example.githubdemo.viewmodel.UserInfoViewModel
+import com.example.githubdemo.ui.viewmodel.UserInfoViewModel
 
 
 private const val MINIMUM_FORKS_FOR_BADGE = 5000
@@ -53,7 +53,7 @@ fun RepositoryDetailsScreen(
     userInfoViewModel: UserInfoViewModel
 ) {
 
-    val repositoryList by userInfoViewModel.userRepositories.collectAsState()
+    val repositoryList by userInfoViewModel.userRepositories.collectAsStateWithLifecycle()
 
     Scaffold(topBar = {
         TopAppBar(

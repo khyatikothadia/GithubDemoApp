@@ -1,4 +1,4 @@
-package com.example.githubdemo.data.datasource
+package com.example.githubdemo.data
 
 import com.example.githubdemo.data.entity.UserInfo
 import com.example.githubdemo.data.entity.UserRepos

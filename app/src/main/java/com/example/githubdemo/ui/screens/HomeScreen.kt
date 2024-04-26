@@ -16,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,11 +30,12 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
 import com.example.githubdemo.R
-import com.example.githubdemo.data.api.ResourceState
+import com.example.githubdemo.data.remote.ResourceState
 import com.example.githubdemo.data.entity.UserInfo
 import com.example.githubdemo.data.entity.UserRepos
 import com.example.githubdemo.ui.components.EmptyState
@@ -46,7 +46,8 @@ import com.example.githubdemo.util.AppConstants.BUTTON_WEIGHT
 import com.example.githubdemo.util.AppConstants.TEXT_WEIGHT
 import com.example.githubdemo.util.CoreUtility
 import com.example.githubdemo.util.CoreUtility.isInternetConnected
-import com.example.githubdemo.viewmodel.UserInfoViewModel
+import com.example.githubdemo.ui.viewmodel.UserInfoViewModel
+import kotlin.math.sin
 
 
 @Composable
@@ -55,8 +56,8 @@ fun HomeScreen(
     userInfoViewModel: UserInfoViewModel,
 ) {
 
-    val userInfo by userInfoViewModel.userInfo.collectAsState()
-    val repositoryList by userInfoViewModel.userRepositories.collectAsState()
+    val userInfo by userInfoViewModel.userInfo.collectAsStateWithLifecycle()
+    val repositoryList by userInfoViewModel.userRepositories.collectAsStateWithLifecycle()
 
     MainContent(
         onRepoClick = onRepoClick,
@@ -98,6 +99,7 @@ fun MainContent(
                 TextField(modifier = Modifier.weight(TEXT_WEIGHT),
                     value = userId,
                     onValueChange = { userId = it },
+                    singleLine = true,
                     label = { Text(stringResource(id = R.string.hint_user_id)) })
                 Button(
                     enabled = userId.isNotEmpty(),

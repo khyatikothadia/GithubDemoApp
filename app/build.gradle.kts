@@ -85,6 +85,7 @@ dependencies {
     implementation(libs.material3)
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout.compose)
+    implementation(libs.lifecycle.runtimeCompose)
     implementation(libs.navigation.compose)
     implementation(libs.hilt.navigation.compose)
 

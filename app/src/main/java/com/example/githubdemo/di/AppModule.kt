@@ -2,9 +2,9 @@ package com.example.githubdemo.di
 
 
 import com.example.githubdemo.BuildConfig
-import com.example.githubdemo.data.api.ApiService
-import com.example.githubdemo.data.datasource.UserInfoDataSource
-import com.example.githubdemo.data.datasource.UserInfoDataSourceImpl
+import com.example.githubdemo.data.UserInfoDataSource
+import com.example.githubdemo.data.remote.ApiService
+import com.example.githubdemo.data.remote.UserInfoRemoteDataSource
 import com.example.githubdemo.data.repository.UserInfoRepository
 import com.example.githubdemo.util.AppConstants.TIME_OUT
 import com.squareup.moshi.Moshi
@@ -13,8 +13,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Converter
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
@@ -31,7 +33,7 @@ class AppModule {
 
     @Singleton
     @Provides
-    fun providesRetrofit(): Retrofit {
+    fun providesClient(): OkHttpClient {
         val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
             level = when (BuildConfig.DEBUG) {
                 true -> HttpLoggingInterceptor.Level.BODY
@@ -47,12 +49,23 @@ class AppModule {
             readTimeout(TIME_OUT, TimeUnit.SECONDS)
         }
 
-        val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+        return httpClient.build()
+    }
 
+    @Provides
+    @Singleton
+    fun provideConverter(): Converter.Factory {
+        val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+        return MoshiConverterFactory.create(moshi)
+    }
+
+    @Singleton
+    @Provides
+    fun providesRetrofit(client: OkHttpClient, converter: Converter.Factory): Retrofit {
         return Retrofit.Builder()
             .baseUrl(BuildConfig.BASE_URL)
-            .client(httpClient.build())
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .client(client)
+            .addConverterFactory(converter)
             .build()
     }
 
@@ -64,13 +77,16 @@ class AppModule {
 
     @Singleton
     @Provides
-    fun providesUserInfoDataSource(apiService: ApiService): UserInfoDataSource {
-        return UserInfoDataSourceImpl(apiService)
+    fun providesUserInfoRemoteDataSource(apiService: ApiService): UserInfoDataSource {
+        return UserInfoRemoteDataSource(apiService)
     }
 
     @Singleton
     @Provides
-    fun providesUserInfoRepository(userInfoDataSource: UserInfoDataSource): UserInfoRepository {
-        return UserInfoRepository(userInfoDataSource)
+    fun providesUserInfoRepository(
+        userInfoDataSource: UserInfoDataSource,
+        dispatcher: CoroutineDispatcher
+    ): UserInfoRepository {
+        return UserInfoRepository(userInfoDataSource, dispatcher)
     }
 }

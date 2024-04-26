@@ -1,13 +1,12 @@
-package com.example.githubdemo.viewmodel
+package com.example.githubdemo.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.githubdemo.data.api.ResourceState
+import com.example.githubdemo.data.remote.ResourceState
 import com.example.githubdemo.data.entity.UserInfo
 import com.example.githubdemo.data.entity.UserRepos
 import com.example.githubdemo.data.repository.UserInfoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -44,7 +43,7 @@ class UserInfoViewModel @Inject constructor(
      * @param userId The unique identifier of the user whose information is to be fetched.
      */
     fun getUserInfo(userId: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             userInfoRepository.getUserInfo(userId).collectLatest { userInfo ->
                 _userInfo.value = userInfo
             }
@@ -58,7 +57,7 @@ class UserInfoViewModel @Inject constructor(
      * @param userId The unique identifier of the user whose information is to be fetched.
      */
     fun getUserReposDetails(userId: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             userInfoRepository.getUserReposDetails(userId).collectLatest { repositories ->
                 _userRepositories.value = repositories
             }

@@ -7,7 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.githubdemo.ui.screens.HomeScreen
 import com.example.githubdemo.ui.screens.RepositoryDetailsScreen
-import com.example.githubdemo.viewmodel.UserInfoViewModel
+import com.example.githubdemo.ui.viewmodel.UserInfoViewModel
 
 @Composable
 fun AppNavigationGraph(navController: NavHostController) {

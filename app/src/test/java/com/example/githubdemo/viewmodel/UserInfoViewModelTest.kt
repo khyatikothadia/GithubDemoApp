@@ -1,11 +1,11 @@
 package com.example.githubdemo.viewmodel
 
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import app.cash.turbine.test
-import com.example.githubdemo.data.api.ResourceState
+import com.example.githubdemo.data.remote.ResourceState
 import com.example.githubdemo.data.entity.UserInfo
 import com.example.githubdemo.data.entity.UserRepos
 import com.example.githubdemo.data.repository.UserInfoRepository
+import com.example.githubdemo.ui.viewmodel.UserInfoViewModel
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -14,16 +14,14 @@ import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestRule
 
 @ExperimentalCoroutinesApi
 class UserInfoViewModelTest {
@@ -34,11 +32,11 @@ class UserInfoViewModelTest {
 
     private lateinit var userInfoViewModel: UserInfoViewModel
 
-    private val dispatcher: TestDispatcher = StandardTestDispatcher()
+    private val dispatcher: TestDispatcher = UnconfinedTestDispatcher()
 
     // Rule to swap the background executor used by the Architecture Components with a different one
-    @get:Rule
-    val rule: TestRule = InstantTaskExecutorRule()
+    //@get:Rule
+    //val rule: TestRule = InstantTaskExecutorRule()
 
     @Before
     fun setup() {

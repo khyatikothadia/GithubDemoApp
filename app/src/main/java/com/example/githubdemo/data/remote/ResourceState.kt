@@ -1,4 +1,4 @@
-package com.example.githubdemo.data.api
+package com.example.githubdemo.data.remote
 
 sealed class ResourceState<T> {
 
